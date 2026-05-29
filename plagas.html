@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Deméter - Gestión de Plagas GTO</title>
+
+<style>
+
+:root{
+    --bg-principal:#0d1117;
+    --bg-tarjeta:#161b22;
+    --borde:#30363d;
+    --texto-blanco:#c9d1d9;
+    --texto-gris:#8b949e;
+    --accent:#238636;
+    --accent-hover:#2ea44f;
+}
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    padding:20px;
+    background:var(--bg-principal);
+    color:var(--texto-blanco);
+    font-family:Arial, Helvetica, sans-serif;
+}
+
+.contenedor{
+    max-width:1600px;
+    margin:auto;
+}
+
+h1{
+    margin-bottom:5px;
+}
+
+.subtitulo{
+    color:var(--texto-gris);
+    margin-bottom:30px;
+}
+
+/* ========================= */
+/* TABS */
+/* ========================= */
+
+.tabs-container{
+    display:flex;
+    gap:10px;
+    overflow-x:auto;
+    margin-bottom:30px;
+    padding-bottom:10px;
+    border-bottom:1px solid var(--borde);
+}
+
+.tab-btn{
+    background:#21262d;
+    border:none;
+    color:white;
+    padding:10px 18px;
+    border-radius:8px;
+    cursor:pointer;
+    transition:0.3s;
+    white-space:nowrap;
+    font-size:0.95rem;
+}
+
+.tab-btn:hover{
+    background:var(--accent);
+}
+
+.tab-btn.active{
+    background:var(--accent);
+}
+
+/* ========================= */
+/* MASONRY LAYOUT */
+/* ========================= */
+
+.grid-plagas{
+    column-count:4;
+    column-gap:20px;
+}
+
+/* ========================= */
+/* TARJETAS */
+/* ========================= */
+
+.card-plaga{
+    display:inline-block;
+    width:100%;
+
+    margin-bottom:20px;
+
+    background:var(--bg-tarjeta);
+
+    border:1px solid var(--borde);
+
+    border-radius:12px;
+
+    overflow:hidden;
+
+    transition:0.3s;
+
+    cursor:pointer;
+
+    break-inside:avoid;
+}
+
+.card-plaga:hover{
+    transform:translateY(-5px);
+    border-color:var(--accent);
+    box-shadow:0 10px 25px rgba(0,0,0,0.35);
+}
+
+/* ========================= */
+/* IMAGEN */
+/* ========================= */
+
+.img-container{
+    width:100%;
+    height:220px;
+    overflow:hidden;
+}
+
+.img-container img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    transition:0.4s;
+}
+
+.card-plaga:hover img{
+    transform:scale(1.05);
+}
+
+/* ========================= */
+/* BOTON */
+/* ========================= */
+
+.click-hint{
+    background:#1f242c;
+    text-align:center;
+    padding:10px;
+    font-size:0.85rem;
+    color:#c9d1d9;
+    border-top:1px solid #30363d;
+    transition:0.3s;
+}
+
+.card-plaga:hover .click-hint{
+    background:var(--accent);
+}
+
+/* ========================= */
+/* INFO */
+/* ========================= */
+
+.card-info{
+    display:none;
+    padding:18px;
+    animation:fadeIn 0.3s ease;
+}
+
+.card-plaga.active .card-info{
+    display:block;
+}
+
+/* ========================= */
+/* ANIMACION */
+/* ========================= */
+
+@keyframes fadeIn{
+
+    from{
+        opacity:0;
+        transform:translateY(10px);
+    }
+
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+
+}
+
+/* ========================= */
+/* TEXTO */
+/* ========================= */
+
+.nombre-comun{
+    margin:0;
+    color:white;
+    font-size:1.35rem;
+}
+
+.nombre-cientifico{
+    color:var(--accent-hover);
+    font-style:italic;
+    display:block;
+    margin-top:5px;
+    margin-bottom:15px;
+    font-size:0.95rem;
+}
+
+.descripcion{
+    color:#b1bac4;
+    line-height:1.6;
+    font-size:0.95rem;
+}
+
+/* ========================= */
+/* INFO EXTRA */
+/* ========================= */
+
+.extra-info{
+    margin-top:15px;
+    background:#1c2128;
+    padding:14px;
+    border-radius:10px;
+    border:1px solid #30363d;
+}
+
+.extra-info h4{
+    margin-top:12px;
+    margin-bottom:10px;
+    color:#58a6ff;
+    font-size:0.95rem;
+}
+
+.extra-info ul{
+    padding-left:18px;
+    line-height:1.7;
+    color:#c9d1d9;
+}
+
+.extra-info li{
+    margin-bottom:6px;
+}
+
+.riesgo{
+    color:#ffb86b;
+    font-weight:bold;
+    font-size:1rem;
+}
+
+/* ========================= */
+/* OCULTAR */
+/* ========================= */
+
+.hidden{
+    display:none !important;
+}
+
+/* ========================= */
+/* RESPONSIVE */
+/* ========================= */
+
+@media(max-width:1400px){
+
+    .grid-plagas{
+        column-count:3;
+    }
+
+}
+
+@media(max-width:1000px){
+
+    .grid-plagas{
+        column-count:2;
+    }
+
+}
+
+@media(max-width:700px){
+
+    .grid-plagas{
+        column-count:1;
+    }
+
+    body{
+        padding:15px;
+    }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="contenedor">
+
+<h1>🌱 Deméter - Gestión de Plagas GTO</h1>
+
+<p class="subtitulo">
+Sistema de consulta agrícola de plagas, control y fumigación para cultivos de Guanajuato.
+</p>
+
+<div class="tabs-container">
+
+<button class="tab-btn active" onclick="filtrarCultivo('todos', this)">
+Todos
+</button>
+
+<button class="tab-btn" onclick="filtrarCultivo('maiz', this)">
+🌽 Maíz
+</button>
+
+<button class="tab-btn" onclick="filtrarCultivo('frijol', this)">
+🫘 Frijol
+</button>
+
+<button class="tab-btn" onclick="filtrarCultivo('aguacate', this)">
+🥑 Aguacate
+</button>
+
+<button class="tab-btn" onclick="filtrarCultivo('fresa', this)">
+🍓 Fresa
+</button>
+
+</div>
+
+<div class="grid-plagas" id="contenedor-plagas"></div>
+
+</div>
+
+<script>
+
+const plagas = [
+
+/* ================= MAIZ ================= */
+
+{
+cultivo:"maiz",
+nombre:"Gusano Cogollero",
+cientifico:"Spodoptera frugiperda",
+descripcion:"Plaga crítica del maíz que ataca el cogollo y reduce el rendimiento.",
+combatir:[
+"Monitorear constantemente el cultivo",
+"Eliminar hojas infestadas",
+"Uso de control biológico"
+],
+fumigantes:[
+"Clorpirifos",
+"Spinosad",
+"Lambda Cyhalotrina"
+],
+riesgo:"ALTO",
+img:"https://proain.com/cdn/shop/articles/gusano-cogollero.jpg?v=1599160974"
+},
+
+{
+cultivo:"maiz",
+nombre:"Gusano Elotero",
+cientifico:"Helicoverpa zea",
+descripcion:"Perfora el elote y favorece hongos.",
+combatir:[
+"Uso de trampas de feromonas",
+"Eliminar mazorcas dañadas",
+"Aplicar control biológico"
+],
+fumigantes:[
+"Permetrina",
+"Clorantraniliprol",
+"Spinetoram"
+],
+riesgo:"ALTO",
+img:"https://live.staticflickr.com/5528/10600394483_ef5882ffff_b.jpg"
+},
+
+{
+cultivo:"maiz",
+nombre:"Chicharrita del Maíz",
+cientifico:"Dalbulus maidis",
+descripcion:"Transmite enfermedades del maíz.",
+combatir:[
+"Eliminar maleza",
+"Monitoreo temprano",
+"Uso de semillas certificadas"
+],
+fumigantes:[
+"Imidacloprid",
+"Acetamiprid",
+"Thiamethoxam"
+],
+riesgo:"ALTO",
+img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTMp-vnCdoa-dc3uTJzDpB--5rX8cKVPMsVAw&s"
+},
+
+{
+cultivo:"maiz",
+nombre:"Pulgón del Maíz",
+cientifico:"Rhopalosiphum maidis",
+descripcion:"Chupa savia y debilita el cultivo.",
+combatir:[
+"Control biológico",
+"Evitar exceso de nitrógeno",
+"Eliminar hojas dañadas"
+],
+fumigantes:[
+"Malatión",
+"Imidacloprid",
+"Cipermetrina"
+],
+riesgo:"MEDIO",
+img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5pYVmSKFrobDpDvcvkOvy3o_iK1Ei51w0hw&s"
+},
+
+{
+cultivo:"maiz",
+nombre:"Gallina Ciega",
+cientifico:"Phyllophaga spp.",
+descripcion:"Consume raíces y reduce crecimiento.",
+combatir:[
+"Rotación de cultivos",
+"Labranza profunda",
+"Aplicar hongos entomopatógenos"
+],
+fumigantes:[
+"Clorpirifos",
+"Diazinón",
+"Teflutrina"
+],
+riesgo:"ALTO",
+img:"https://www.intagri.com/assets/images/articulos/categoria1/Fitosanidad/art302-gallina-ciega/larva.jpg"
+},
+
+/* ================= FRIJOL ================= */
+
+{
+cultivo:"frijol",
+nombre:"Conchuela del Frijol",
+cientifico:"Epilachna varivestis",
+descripcion:"Devora hojas y vainas del frijol.",
+combatir:[
+"Eliminar hojas infestadas",
+"Rotación de cultivos",
+"Monitoreo frecuente"
+],
+fumigantes:[
+"Malatión",
+"Cipermetrina",
+"Imidacloprid"
+],
+riesgo:"MEDIO",
+img:"https://inaturalist-open-data.s3.amazonaws.com/photos/1964794/medium.jpg"
+},
+
+{
+cultivo:"frijol",
+nombre:"Mosca Blanca",
+cientifico:"Bemisia tabaci",
+descripcion:"Transmite virus y debilita plantas.",
+combatir:[
+"Uso de trampas amarillas",
+"Eliminar maleza",
+"Control biológico"
+],
+fumigantes:[
+"Acetamiprid",
+"Imidacloprid",
+"Bifentrina"
+],
+riesgo:"ALTO",
+img:"https://generacionverde.com/wp-content/uploads/2015/12/mosca-blanca.jpg"
+},
+
+{
+cultivo:"frijol",
+nombre:"Trips",
+cientifico:"Frankliniella occidentalis",
+descripcion:"Produce deformaciones y manchas.",
+combatir:[
+"Controlar maleza",
+"Uso de trampas azules",
+"Monitoreo constante"
+],
+fumigantes:[
+"Spinosad",
+"Abamectina",
+"Lambda Cyhalotrina"
+],
+riesgo:"MEDIO",
+img:"https://prod.senasica.gob.mx/ALERTAS/imagenes/noticias/678fb83f8daa4.jpg"
+},
+
+{
+cultivo:"frijol",
+nombre:"Araña Roja",
+cientifico:"Tetranychus urticae",
+descripcion:"Seca hojas y reduce producción.",
+combatir:[
+"Mantener humedad adecuada",
+"Eliminar hojas secas",
+"Control biológico"
+],
+fumigantes:[
+"Abamectina",
+"Bifentrina",
+"Azufre agrícola"
+],
+riesgo:"ALTO",
+img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSS-KPvpaX0L2WS_1VtCNPxNykv-J8uoH5ObA&s"
+},
+
+{
+cultivo:"frijol",
+nombre:"Picudo del Frijol",
+cientifico:"Acanthoscelides obtectus",
+descripcion:"Perfora semillas almacenadas.",
+combatir:[
+"Almacenar correctamente",
+"Eliminar semillas dañadas",
+"Desinfectar almacenes"
+],
+fumigantes:[
+"Fosfuro de aluminio",
+"Malatión",
+"Permetrina"
+],
+riesgo:"MEDIO",
+img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4skKcxHxteYsaPBydqluKYBufqRVQlS_xhQ&s"
+},
+
+/* ================= AGUACATE ================= */
+
+{
+cultivo:"aguacate",
+nombre:"Trips del Aguacate",
+cientifico:"Scirtothrips perseae",
+descripcion:"Provoca cicatrices en frutos.",
+combatir:[
+"Poda de ramas afectadas",
+"Control de maleza",
+"Uso de trampas adhesivas"
+],
+fumigantes:[
+"Abamectina",
+"Spinosad",
+"Aceite Neem"
+],
+riesgo:"ALTO",
+img:"https://www.intagri.com/assets/images/articulos/categoria1/Fitosanidad/trips-en-aguacate/adulto-nakahara-.jpg"
+},
+
+{
+cultivo:"aguacate",
+nombre:"Barrenador del Hueso",
+cientifico:"Heilipus lauri",
+descripcion:"Perfora frutos y semillas.",
+combatir:[
+"Recolectar frutos dañados",
+"Poda sanitaria",
+"Monitoreo constante"
+],
+fumigantes:[
+"Clorpirifos",
+"Permetrina",
+"Lambda Cyhalotrina"
+],
+riesgo:"ALTO",
+img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSdc6Wk2oiqetyGixlCoiwgzZ6_CRcZj3duNA&s"
+},
+
+{
+cultivo:"aguacate",
+nombre:"Mosca de la Fruta",
+cientifico:"Anastrepha ludens",
+descripcion:"Infesta frutos maduros.",
+combatir:[
+"Recolectar fruta caída",
+"Uso de trampas",
+"Control biológico"
+],
+fumigantes:[
+"Spinosad",
+"Malatión",
+"Proteína hidrolizada"
+],
+riesgo:"ALTO",
+img:"https://www.farmex.com.pe/blog/wp-content/uploads/2024/02/Mosca-de-la-Fruta-OPT.jpg"
+},
+
+{
+cultivo:"aguacate",
+nombre:"Cochinilla Harinosa",
+cientifico:"Pseudococcus spp.",
+descripcion:"Produce melaza y fumagina.",
+combatir:[
+"Poda de ramas",
+"Control biológico",
+"Evitar exceso de humedad"
+],
+fumigantes:[
+"Aceite mineral",
+"Imidacloprid",
+"Acetamiprid"
+],
+riesgo:"MEDIO",
+img:"https://geoportal.fiprodefo.gob.mx/wp-content/uploads/2018/09/IMG_7753.jpg"
+},
+
+{
+cultivo:"aguacate",
+nombre:"Araña Roja",
+cientifico:"Oligonychus perseae",
+descripcion:"Produce amarillamiento de hojas.",
+combatir:[
+"Monitorear hojas",
+"Mantener humedad",
+"Eliminar hojas dañadas"
+],
+fumigantes:[
+"Abamectina",
+"Azufre agrícola",
+"Bifentrina"
+],
+riesgo:"MEDIO",
+img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3q2IjTpT-EemBcDNLdOHtOSfwWhLFpBPu9A&s"
+},
+
+/* ================= FRESA ================= */
+
+{
+cultivo:"fresa",
+nombre:"Araña Roja",
+cientifico:"Tetranychus urticae",
+descripcion:"Plaga común en la región fresera.",
+combatir:[
+"Mantener humedad adecuada",
+"Eliminar hojas dañadas",
+"Uso de depredadores naturales"
+],
+fumigantes:[
+"Abamectina",
+"Bifentrina",
+"Azufre agrícola"
+],
+riesgo:"MUY ALTO",
+img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS77z-E4ElMUTZ_00vMs6AB8PKNt0SODWwWlw&s"
+},
+
+{
+cultivo:"fresa",
+nombre:"Trips",
+cientifico:"Frankliniella occidentalis",
+descripcion:"Daña flores y frutos.",
+combatir:[
+"Trampas adhesivas",
+"Eliminar maleza",
+"Monitoreo constante"
+],
+fumigantes:[
+"Spinosad",
+"Abamectina",
+"Lambda Cyhalotrina"
+],
+riesgo:"ALTO",
+img:"https://www.agrobiotop.com/wp-content/uploads/2025/07/thrips-fraisier-1024x652.webp"
+},
+
+{
+cultivo:"fresa",
+nombre:"Pulgón de la Fresa",
+cientifico:"Chaetosiphon fragaefolii",
+descripcion:"Transmite enfermedades virales.",
+combatir:[
+"Eliminar hojas infestadas",
+"Control biológico",
+"Monitorear cultivo"
+],
+fumigantes:[
+"Imidacloprid",
+"Malatión",
+"Acetamiprid"
+],
+riesgo:"MEDIO",
+img:"https://www.proveedoraforestal.com/source/Aphididae_(aka).jpg"
+},
+
+{
+cultivo:"fresa",
+nombre:"Babosas",
+cientifico:"Deroceras reticulatum",
+descripcion:"Dañan frutos maduros.",
+combatir:[
+"Reducir humedad excesiva",
+"Retirar residuos",
+"Uso de trampas"
+],
+fumigantes:[
+"Metaldehído",
+"Fosfato férrico"
+],
+riesgo:"MEDIO",
+img:"https://thumbs.dreamstime.com/b/arion-vulgaris-snail-parasitizates-de-plaga-lodo-espa%C3%B1ol-sobre-fresa-traslada-jard%C3%ADn-comer-cosechas-maduras-frutales-en-186295544.jpg"
+},
+
+{
+cultivo:"fresa",
+nombre:"Chinche Lygus",
+cientifico:"Lygus lineolaris",
+descripcion:"Deforma los frutos.",
+combatir:[
+"Controlar maleza",
+"Monitoreo frecuente",
+"Uso de trampas"
+],
+fumigantes:[
+"Bifentrina",
+"Permetrina",
+"Malatión"
+],
+riesgo:"ALTO",
+img:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4mnL0fmgRE0m8z_NMF5ucva-GFVoc-OSh4w&s"
+}
+
+];
+
+const contenedor = document.getElementById("contenedor-plagas");
+
+plagas.forEach(plaga=>{
+
+contenedor.innerHTML += `
+
+<div class="card-plaga" data-cultivo="${plaga.cultivo}" onclick="toggleInfo(this)">
+
+<div class="img-container">
+<img src="${plaga.img}" alt="${plaga.nombre}">
+</div>
+
+<div class="click-hint">
+Ver información
+</div>
+
+<div class="card-info">
+
+<h3 class="nombre-comun">
+${plaga.nombre}
+</h3>
+
+<span class="nombre-cientifico">
+${plaga.cientifico}
+</span>
+
+<p class="descripcion">
+${plaga.descripcion}
+</p>
+
+<div class="extra-info">
+
+<h4>🛡 Cómo combatirla</h4>
+
+<ul>
+${plaga.combatir.map(item=>`<li>${item}</li>`).join('')}
+</ul>
+
+<h4>🧪 Fumigantes recomendados</h4>
+
+<ul>
+${plaga.fumigantes.map(item=>`<li>${item}</li>`).join('')}
+</ul>
+
+<h4>⚠ Nivel de Riesgo</h4>
+
+<p class="riesgo">
+${plaga.riesgo}
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+`;
+
+});
+
+function toggleInfo(tarjeta){
+
+tarjeta.classList.toggle("active");
+
+const hint = tarjeta.querySelector(".click-hint");
+
+if(tarjeta.classList.contains("active")){
+hint.textContent = "Ocultar información";
+}else{
+hint.textContent = "Ver información";
+}
+
+}
+
+function filtrarCultivo(cultivo, elementoActivo){
+
+const botones = document.querySelectorAll(".tab-btn");
+
+botones.forEach(btn=>{
+btn.classList.remove("active");
+});
+
+elementoActivo.classList.add("active");
+
+const tarjetas = document.querySelectorAll(".card-plaga");
+
+tarjetas.forEach(tarjeta=>{
+
+tarjeta.classList.remove("active");
+
+const hint = tarjeta.querySelector(".click-hint");
+
+hint.textContent = "Ver información";
+
+if(cultivo==="todos"){
+
+tarjeta.classList.remove("hidden");
+
+}else{
+
+if(tarjeta.getAttribute("data-cultivo")===cultivo){
+
+tarjeta.classList.remove("hidden");
+
+}else{
+
+tarjeta.classList.add("hidden");
+
+}
+
+}
+
+});
+
+}
+
+</script>
+
+</body>
+</html>

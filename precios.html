@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deméter Agro-System</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), 
+                        url('https://images.unsplash.com/photo-1500937386664-56d1dfef3854?q=80&w=2070') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            color: #333;
+            padding: 40px 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #fff;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #e0e0e0;
+            font-size: 1.1rem;
+            margin-bottom: 40px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+        }
+
+        #loader {
+            text-align: center;
+            font-size: 1.5rem;
+            color: #fff;
+            margin-top: 50px;
+            font-weight: bold;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            width: 360px;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            color: #fff;
+            font-weight: bold;
+            text-align: center;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+        }
+
+        /* Colores de las cabeceras de tarjetas */
+        .maiz { background-color: #2e7d32; }
+        .sorgo { background-color: #f9a825; }
+        .frijol { background-color: #c62828; }
+
+        .precio-actual {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #1a1a1a;
+            margin-bottom: 5px;
+        }
+
+        .mercado-destino {
+            font-size: 0.9rem;
+            color: #666;
+            font-style: italic;
+            text-align: center;
+            min-height: 40px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .grafica-box {
+            width: 100%;
+            height: 180px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .tendencia {
+            width: 100%;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+            color: #444;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Sistema Agricola Deméter</h1>
+    <div class="subtitle">Sistema de consulta de precios agrícolas en línea datos oficiales SNIIM</div>
+
+    <div id="loader">🔄 Conectando en vivo con el SNIIM... Por favor espera...</div>
+
+    <div class="container" id="panel-precios" style="display: none;">
+        
+        <div class="card">
+            <div class="card-header maiz">🌽 MAÍZ BLANCO</div>
+            <div class="precio-actual" id="precio-maiz">$0.00 <span style="font-size: 1rem;">/ Ton</span></div>
+            <div class="mercado-destino" id="destino-maiz">Buscando destino...</div>
+            <div class="grafica-box">
+                <canvas id="chartMaiz"></canvas>
+            </div>
+            <div class="tendencia" id="tendencia-maiz">--</div>
+        </div>
+
+        <div class="card">
+            <div class="card-header sorgo">🥜 CACAHUATE C/CÁSCARA</div>
+            <div class="precio-actual" id="precio-cacahuate">$0.00 <span style="font-size: 1rem;">/ KG</span></div>
+            <div class="mercado-destino" id="destino-cacahuate">Buscando destino...</div>
+            <div class="grafica-box">
+                <canvas id="chartCacahuate"></canvas>
+            </div>
+            <div class="tendencia" id="tendencia-cacahuate">--</div>
+        </div>
+
+        <div class="card">
+            <div class="card-header frijol">🫘 FRIJOL FLOR DE JUNIO</div>
+            <div class="precio-actual" id="precio-frijol">$0.00 <span style="font-size: 1rem;">/ KG</span></div>
+            <div class="mercado-destino" id="destino-frijol">Buscando destino...</div>
+            <div class="grafica-box">
+                <canvas id="chartFrijol"></canvas>
+            </div>
+            <div class="tendencia" id="tendencia-frijol">--</div>
+        </div>
+
+    </div>
+
+    <script>
+    // Sanea strings con problemas latentes de encoding (ISO-8859-1 a UTF-8)
+    function limpiarTextoUTF8(texto) {
+        try {
+            return decodeURIComponent(escape(texto));
+        } catch (e) {
+            return texto;
+        }
+    }
+
+    // Inicializa Chart.js dinámicamente con colchón en el Eje Y
+    function generarGrafica(canvasId, minimo, maximo, frecuente, color) {
+        const canvasElement = document.getElementById(canvasId);
+        if (!canvasElement) return; 
+        
+        const ctx = canvasElement.getContext('2d');
+        // Margen inteligente del 30% del rango para que las curvas respiren visualmente
+        const margen = (maximo - minimo) * 0.3 || minimo * 0.05; 
+        
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Mínimo', 'Máximo', 'Frecuente'],
+                datasets: [{
+                    data: [minimo, maximo, frecuente],
+                    borderColor: color,
+                    backgroundColor: color + '22',
+                    borderWidth: 3,
+                    pointRadius: 6,
+                    pointBackgroundColor: color,
+                    fill: true,
+                    tension: 0.3 // Curvatura suave y moderna
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { 
+                        display: true, 
+                        grid: { display: false },
+                        suggestedMin: minimo - margen,
+                        suggestedMax: maximo + margen
+                    },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    window.onload = function() {
+        // Consumimos tu backend unificado precios.php
+        fetch("precios.php")
+            .then(response => {
+                if (!response.ok) throw new Error("No se pudo obtener la respuesta del servidor.");
+                return response.json();
+            })
+            .then(res => {
+                console.log("Datos del backend procesados:", res);
+
+                if (res.error) throw new Error("Error en el servicio de datos.");
+
+                // Cambiamos visibilidad del cargador al tablero de control
+                document.getElementById("loader").style.display = "none";
+                document.getElementById("panel-precios").style.display = "flex";
+
+                const datos = res.datos;
+
+                // ==========================================
+                // 🌽 1. PROCESAR MAÍZ REAL (POR TONELADA)
+                // ==========================================
+                try {
+                    if (datos.maiz && !datos.maiz.error) {
+                        const mMin = Number(datos.maiz.minimo) * 1000;
+                        const mMax = Number(datos.maiz.maximo) * 1000;
+                        const mFre = Number(datos.maiz.frecuente) * 1000; 
+
+                        document.getElementById("precio-maiz").innerHTML =
+                            `$${mFre.toLocaleString('es-MX', { minimumFractionDigits: 2 })} <span style="font-size:1rem;"> / Ton</span>`;
+                        
+                        document.getElementById("destino-maiz").innerText = `Destino: ${limpiarTextoUTF8(datos.maiz.mercado)}`;
+
+                        document.getElementById("tendencia-maiz").innerHTML = `
+                            <div style="margin-top:10px; font-size:14px; font-weight:normal; text-align:left; width:100%;">
+                                <strong>Min:</strong> $${mMin.toLocaleString('es-MX', { minimumFractionDigits: 2 })}<br>
+                                <strong>Max:</strong> $${mMax.toLocaleString('es-MX', { minimumFractionDigits: 2 })}<br>
+                                <strong>Frec:</strong> $${mFre.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                            </div>`;
+                        
+                        generarGrafica("chartMaiz", mMin, mMax, mFre, "#2e7d32");
+                    }
+                } catch (err) { console.error("Error renderizando Maíz:", err); }
+
+                // ==========================================
+                // 🥜 2. PROCESAR CACAHUATE (POR KILOGRAMO)
+                // ==========================================
+                try {
+                    if (datos.cacahuate && !datos.cacahuate.error) {
+                        const cMin = Number(datos.cacahuate.minimo);
+                        const cMax = Number(datos.cacahuate.maximo);
+                        const cFre = Number(datos.cacahuate.frecuente); 
+
+                        document.getElementById("precio-cacahuate").innerHTML =
+                            `$${cFre.toLocaleString('es-MX', { minimumFractionDigits: 2 })} <span style="font-size:1rem;"> / KG</span>`;
+                        
+                        document.getElementById("destino-cacahuate").innerText = `Destino: ${limpiarTextoUTF8(datos.cacahuate.mercado)}`;
+
+                        document.getElementById("tendencia-cacahuate").innerHTML = `
+                            <div style="margin-top:10px; font-size:14px; font-weight:normal; text-align:left; width:100%;">
+                                <strong>Min:</strong> $${cMin.toLocaleString('es-MX', { minimumFractionDigits: 2 })}<br>
+                                <strong>Max:</strong> $${cMax.toLocaleString('es-MX', { minimumFractionDigits: 2 })}<br>
+                                <strong>Frec:</strong> $${cFre.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                            </div>`;
+
+                        generarGrafica("chartCacahuate", cMin, cMax, cFre, "#f9a825");
+                    }
+                } catch (err) { console.error("Error renderizando Cacahuate:", err); }
+
+                // ==========================================
+                // 🫘 3. PROCESAR FRIJOL (POR KILOGRAMO)
+                // ==========================================
+                try {
+                    if (datos.frijol_flor_junio && !datos.frijol_flor_junio.error) {
+                        const fMin = Number(datos.frijol_flor_junio.minimo);
+                        const fMax = Number(datos.frijol_flor_junio.maximo);
+                        const fFre = Number(datos.frijol_flor_junio.frecuente); 
+
+                        document.getElementById("precio-frijol").innerHTML =
+                            `$${fFre.toLocaleString('es-MX', { minimumFractionDigits: 2 })} <span style="font-size:1rem;"> / KG</span>`;
+                        
+                        document.getElementById("destino-frijol").innerText = `Destino: ${limpiarTextoUTF8(datos.frijol_flor_junio.mercado)}`;
+
+                        document.getElementById("tendencia-frijol").innerHTML = `
+                            <div style="margin-top:10px; font-size:14px; font-weight:normal; text-align:left; width:100%;">
+                                <strong>Min:</strong> $${fMin.toLocaleString('es-MX', { minimumFractionDigits: 2 })}<br>
+                                <strong>Max:</strong> $${fMax.toLocaleString('es-MX', { minimumFractionDigits: 2 })}<br>
+                                <strong>Frec:</strong> $${fFre.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                            </div>`;
+
+                        generarGrafica("chartFrijol", fMin, fMax, fFre, "#c62828");
+                    }
+                } catch (err) { console.error("Error renderizando Frijol:", err); }
+
+            })
+            .catch(error => {
+                console.error(error);
+                document.getElementById("loader").innerHTML =
+                    `<span style="color: #c62828;">⚠️ Error al obtener datos del SNIIM: ${error.message}</span>`;
+            });
+    };
+    </script>
+</body>
+</html>
